@@ -11,7 +11,6 @@ Sonata is a modern, high-performance music streaming web application built with 
 * **Styling:** Tailwind CSS v4 + daisyUI (Custom "Sonata" Theme)
 * **State Management:** React Context API (Global Audio State)
 * **Icons:** Lucide React
-* **Drag & Drop:** `@hello-pangea/dnd` (Optimized fork of `react-beautiful-dnd`)
 
 ### Backend
 * **Framework:** FastAPI (Python 3.10+)
