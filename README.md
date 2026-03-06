@@ -50,6 +50,14 @@ A data-driven landing page that feels unique to every user.
 * **Genre Explorer:** Dynamic grid showing music categories (Jazz, Lo-fi, Synthwave, etc.).
 * **Recommendation Engine:** A "Picked for You" section based on the user's most-played genres.
 
+### 5. Artist Portal & Music Distribution
+Empowering creators to share their work with the world.
+
+* **Artist Application:** Users can apply for "Artist Status" by providing profile details.
+
+* **Media Upload:** Verified artists gain access to an upload dashboard to publish tracks (handling multipart file uploads in FastAPI).
+
+* **Content Management:** Artists can edit track metadata (Genre, Title, Cover Art) or remove their own songs.
 ---
 
 ## 📂 Project Structure
