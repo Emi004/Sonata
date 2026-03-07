@@ -1,0 +1,4 @@
+fastapi==0.120.1
+uvicorn[standard]==0.34.0
+httpx==0.28.1
+coverage~=7.3.1
