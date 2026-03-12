@@ -1,80 +1,87 @@
-# 🎵 Sonata | Music Streaming Platform
+# 🎵 Sonata | Music Streaming & Artist Platform
 
-Sonata is a modern, high-performance music streaming web application built with a **FastAPI** backend and a **React/Vite** frontend. It features a sleek "Midnight Electric" UI, dynamic playback controls, and personalized music discovery.
+**Sonata** is a high-performance music streaming ecosystem designed for seamless audio delivery and artist empowerment. Developed as a full-stack educational project, it demonstrates proficiency in **asynchronous backend architecture**, **event-driven database design**, and **global state management**.
 
 ---
 
-## 🛠️ Tech Stack & Requirements
+## 🛠️ Tech Stack & System Requirements
 
-### Frontend
-* **Framework:** React 18+ (via Vite)
-* **Styling:** Tailwind CSS v4 + daisyUI (Custom "Sonata" Theme)
-* **State Management:** React Context API (Global Audio State)
-* **Icons:** Lucide React
+### **Frontend (The User Interface)**
+* **Framework:** **React 18** (Vite) for optimized performance and rapid development.
+* **Styling:** **Tailwind CSS + daisyUI** ("Midnight Electric" theme) for a responsive, modern aesthetic.
+* **State Management:** **React Context API**, creating a global provider for the persistent Audio Engine.
+* **Client Communication:** **Supabase JS SDK** for real-time authentication and database interaction.
 
-### Backend
-* **Framework:** FastAPI (Python 3.10+)
-* **Server:** Uvicorn with `--reload`
-* **Database:** PostgreSQL (via SQLAlchemy ORM)
-* **Security:** JWT (JSON Web Tokens) for Authentication
-* **Validation:** Pydantic v2
+### **Backend (The Logic Layer)**
+* **Framework:** **FastAPI (Python 3.13+)**, utilizing asynchronous programming for high-concurrency performance.
+* **Security:** **JWT (JSON Web Tokens)** verification using `python-jose` to protect sensitive routes.
+* **Validation:** **Pydantic v2** for strict data schema enforcement and serialization.
+* **Server:** **Uvicorn** ASGI server for local development and production-ready hosting.
 
-### System Requirements
-* **Node.js:** v18.0.0 or higher
-* **Python:** 3.10 or higher
-* **Database:** Local PostgreSQL instance or Supabase
+### **Database & Infrastructure (The Data Layer)**
+* **Database:** **PostgreSQL** (via **Supabase**) for robust relational data management.
+* **Automation:** **PL/pgSQL Triggers** to automatically synchronize Auth identities with Public User profiles.
+* **Media Storage:** **Supabase Storage (S3)** for high-fidelity audio binaries and image assets.
 
 ---
 
 ## 🚀 Key Dynamic Features
 
 ### 1. Interactive Media Engine
-A persistent, global music player that remains active while navigating the app.
-* **Live Controls:** Play/Pause, Skip Forward/Backward, and a reactive Seek Bar.
-* **Audio Intelligence:** Real-time volume slider and "Mute" toggle.
-* **Favorites:** One-click "Heart" button that syncs with the user's library in real-time via the backend API.
+A persistent, global music player that remains active during site-wide navigation.
+* **Live Controls:** Play/Pause, Skip, and a reactive Seek Bar utilizing the HTML5 Audio API.
+* **Audio Intelligence:** Real-time volume management and state-aware "Mute" toggles.
+* **Favorites Sync:** A "Heart" button that performs real-time RESTful updates to the backend library.
 
 ### 2. Intelligent Search & Recommendations
-A high-speed search bar designed for discovery.
+A high-speed discovery interface optimized for low latency.
 * **Instant Results:** Debounced search queries that fetch songs and artists as the user types.
-* **Contextual Suggestions:** Displays "Recommended Searches" based on trending tracks or recent history before the user finishes typing.
+* **Contextual Suggestions:** Pre-fetch logic that displays trending tracks or recent history before the user submits a search.
 
 ### 3. Smart Playlist Manager (Drag & Drop)
-A desktop-class experience for organizing music.
-* **Custom Curation:** Create, name, and delete personal playlists.
-* **Reorder Logic:** Intuitive Drag & Drop functionality to reorder tracks within a playlist.
-* **Persistent Ordering:** Frontend syncs new index orders to the Python backend to ensure the custom sequence is saved to the database.
+A desktop-class experience for organizing music using a **Many-to-Many** relational structure.
+* **Custom Curation:** Full CRUD functionality for creating and managing personal playlists.
+* **Reorder Logic:** Integrated Drag & Drop functionality that updates the local UI state instantly.
+* **Persistent Ordering:** Frontend syncs new index sequences to the Python backend to preserve custom track orders in PostgreSQL.
 
 ### 4. Personalized Discovery Home
-A data-driven landing page that feels unique to every user.
-* **Genre Explorer:** Dynamic grid showing music categories (Jazz, Lo-fi, Synthwave, etc.).
-* **Recommendation Engine:** A "Picked for You" section based on the user's most-played genres.
+A data-driven landing page that personalizes the experience for every user.
+* **Genre Explorer:** A dynamic grid mapped from database genre array types (`text[]`).
+* **Recommendation Engine:** Filtering logic that suggests tracks based on the user's most frequently played genres.
 
 ### 5. Artist Portal & Music Distribution
-Empowering creators to share their work with the world.
+Empowering creators to share their work through professional tools.
+* **Artist Onboarding:** An application flow that updates user metadata to grant "Artist Status."
+* **Media Pipeline:** A robust dashboard handling **Multipart/Form-Data** for secure file transfers to cloud storage.
+* **Content Management:** Full metadata control for artists to manage titles, genres, and track availability.
 
-* **Artist Application:** Users can apply for "Artist Status" by providing profile details.
-
-* **Media Upload:** Verified artists gain access to an upload dashboard to publish tracks (handling multipart file uploads in FastAPI).
-
-* **Content Management:** Artists can edit track metadata (Genre, Title, Cover Art) or remove their own songs.
 ---
 
-## 📂 Project Structure
+## 👥 User Roles
+
+| Role | Permissions |
+| :--- | :--- |
+| **Listener** | Stream audio, create/reorder playlists, and favorite tracks. |
+| **Artist** | Upload media, manage albums/track metadata, and edit artist profile. |
+| **Admin** | Manage user status, moderate content, and oversee platform health. |
+
+---
+
+## 📂 Project Structure Overview
 
 ```text
 Sonata/
-├── backend/            # FastAPI Python Logic
+├── backend/                # FastAPI Logic
 │   ├── src/
-│   │   ├── models/     # DB Schemas (SQLAlchemy)
-│   │   ├── schemas/    # Pydantic Validation
-│   │   ├── routers/    # API Endpoints
-│   │   ├── services/   # Business Logic
-│   │   └── main.py     # Entry Point
-├── frontend/           # React + Tailwind UI
+│   │   ├── clients/        # Supabase Client & Lifecycle
+│   │   ├── models/         # Pydantic Schemas (Read/Create)
+│   │   ├── routers/        # API Endpoints (Auth, Music, Playlists)
+│   │   ├── services/       # JWT Logic & Database Triggers
+│   │   └── main.py         # Entry Point & Lifespan
+├── frontend/               # React UI
 │   ├── src/
-│   │   ├── components/ # Reusable UI components
-│   │   ├── hooks/      # useAudio player logic
-│   │   ├── context/    # Global Audio Context
-│   │   └── App.jsx     # Main Layout
-└── README.md
+│   │   ├── components/     # Media Player, Search, Playlists
+│   │   ├── context/        # Global Audio State Management
+│   │   ├── hooks/          # Custom Supabase & Fetch Hooks
+│   │   └── App.jsx         # Routing & Page Layouts
+└── README.md               # Documentation

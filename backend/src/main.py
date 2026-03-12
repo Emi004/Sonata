@@ -1,10 +1,12 @@
 from fastapi import FastAPI
 import uvicorn
 
+from services.lifespan import lifespan
 from routers.health import health
 
 app=FastAPI(title='sonata-api',
             description='This document describes the current operations available on the Sonata music streaming web application',
+            lifespan=lifespan,
             version='v1')
 
 app.include_router(health,tags=['health'])
