@@ -1,29 +1,25 @@
 import { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 
-// Props:
-// - isOpen: boolean – controls visibility
-// - onClose: () => void – called when modal should close
-// - onSubmit: ({ email, password }) => Promise<void> | void – optional auth handler
 function LoginModal({ isOpen, onClose, onSubmit }) {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState("");
 
+	const {Login} = useAuth();
 	if (!isOpen) return null;
 
-	const handleSubmit = async (e) => {
+	const handleLogin = async (e) => {
 		e.preventDefault();
-		setError("");
-		if (!onSubmit) {
-			// No handler wired yet; just close.
-			onClose?.();
-			return;
-		}
-		try {
-			setIsSubmitting(true);
-			await onSubmit({ email, password });
-			onClose?.();
+		setIsSubmitting(true);
+		try{
+			const response = await Login({email,password});
+			if (response.data){
+				onClose?.();
+			} else {
+				setError(response.error || "Failed to log in");
+			}
 		} catch (err) {
 			setError(err?.message || "Failed to log in");
 		} finally {
@@ -44,7 +40,7 @@ function LoginModal({ isOpen, onClose, onSubmit }) {
 						✖
 					</button>
 				</div>
-				<form onSubmit={handleSubmit} className="space-y-4">
+				<form onSubmit={handleLogin} className="space-y-4">
 					<div className="form-control">
 						<label className="label">
 							<span className="label-text">Email</span>

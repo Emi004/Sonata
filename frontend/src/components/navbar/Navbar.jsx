@@ -1,8 +1,10 @@
 import LoginDropdown from './LoginDropdown';
 import SignedOutButtons from './SignedOutButtons';
+import { useAuth } from '../../context/AuthContext';
 
 function Navbar() {
-	const logged = false;
+	
+	const {session,user}= useAuth();
 
 	return (
 		<nav className="navbar pl-5 pr-5 bg-base-100 shadow-accent shadow-sm">
@@ -23,7 +25,7 @@ function Navbar() {
 						></path>{' '}
 					</svg>
 				</button>
-				<a className="btn btn-ghost text-xl">Sonata</a>
+				<a className="btn btn-ghost text-xl">Sonata {user?.username}</a>
 			</div>
 			<div className="navbar-center">
 				<input
@@ -33,7 +35,7 @@ function Navbar() {
 				/>
 			</div>
 			<div className="navbar-end gap-3">
-				{logged ? <LoginDropdown /> : <SignedOutButtons />}
+				{session ? <LoginDropdown /> : <SignedOutButtons />}
 			</div>
 		</nav>
 	);

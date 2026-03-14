@@ -1,4 +1,8 @@
+import { useAuth } from '../../context/AuthContext';
+
 function LoginDropdown() {
+	const {session,user, Logout} = useAuth();
+	
 	return (
 		<>
 			<button className="btn btn-ghost btn-circle">
@@ -28,7 +32,7 @@ function LoginDropdown() {
 					className="btn btn-ghost btn-circle avatar"
 				>
 					<div className="w-10 rounded-full">
-						<img alt="profile picture" src="" />
+						<img alt="profile picture" src={user?.avatarUrl || ""} />
 					</div>
 				</div>
 				<ul
@@ -46,7 +50,10 @@ function LoginDropdown() {
 						</a>
 					</li>
 					<li>
-						<a className="text-error transition  duration-300  ease-in-out hover:text-base-content hover:bg-error">
+						<a
+							className="text-error transition  duration-300  ease-in-out hover:text-base-content hover:bg-error"
+							onClick={Logout}
+						>
 							Logout
 						</a>
 					</li>

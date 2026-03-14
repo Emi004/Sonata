@@ -1,39 +1,39 @@
 import { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
 
-// Props:
-// - isOpen: boolean – controls visibility
-// - onClose: () => void – called when modal should close
-// - onSubmit: ({ email, password, name }) => Promise<void> | void – optional handler
-function SignupModal({ isOpen, onClose, onSubmit }) {
-	const [name, setName] = useState("");
+
+function SignupModal({ isOpen, onClose, onSwitchToLogin }) {
+	const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState("");
 
+	const { signUp } = useAuth();
 	if (!isOpen) return null;
 
-	const handleSubmit = async (e) => {
+	const handleSignUp = async (e) => {
 		e.preventDefault();
-		setError("");
-		if (password !== confirmPassword) {
-			setError("Passwords do not match");
-			return;
-		}
-		if (!onSubmit) {
-			onClose?.();
-			return;
-		}
-		try {
-			setIsSubmitting(true);
-			await onSubmit({ name, email, password });
-			onClose?.();
-		} catch (err) {
-			setError(err?.message || "Failed to sign up");
-		} finally {
-			setIsSubmitting(false);
-		}
+        if(password !== confirmPassword){
+            setError("Passwords do not match");
+            return;
+        }
+        setIsSubmitting(true);
+        try{
+            const response = await signUp({email,password,username});
+
+            if (response.data){
+				onClose?.();
+				onSwitchToLogin?.();
+            }
+
+        }catch(err){
+            setError(err?.message || "Failed to sign up");
+        } finally {
+            setIsSubmitting(false);
+        }
+		
 	};
 
 	return (
@@ -49,17 +49,17 @@ function SignupModal({ isOpen, onClose, onSubmit }) {
 						✖
 					</button>
 				</div>
-				<form onSubmit={handleSubmit} className="space-y-4">
+				<form onSubmit={handleSignUp} className="space-y-4">
 					<div className="flex gap-3">
 						<div className="form-control w-1/2">
 							<label className="label">
-								<span className="label-text">Name</span>
+								<span className="label-text">Username</span>
 							</label>
 							<input
 								type="text"
 								className="input input-bordered w-full"
-								value={name}
-								onChange={(e) => setName(e.target.value)}
+								value={username}
+								onChange={(e) => setUsername(e.target.value)}
 								required
 							/>
 						</div>
@@ -114,6 +114,7 @@ function SignupModal({ isOpen, onClose, onSubmit }) {
 			</div>
 			<button className="modal-backdrop" onClick={onClose} />
 		</div>
+
 	);
 }
 
