@@ -11,3 +11,17 @@ class User(BaseModel):
     avatarUrl: str | None
 
     model_config = ConfigDict(from_attributes=True)
+
+class UserUpdate(BaseModel):
+    username: str | None = None
+    avatarUrl: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class UserUpdateAdmin(BaseModel):
+    username: str | None = None
+    avatarUrl: str | None = None
+    is_artist: bool | None = None
+    is_admin: bool | None = None
+
+    model_config = ConfigDict(from_attributes=True)
