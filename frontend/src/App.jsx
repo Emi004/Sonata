@@ -9,6 +9,7 @@ import violentCrimesAudio from './assets/audio/violent_crimes.mp3';
 function App() {
 	const { playTrack } = useAudio();
 
+	
 	//mock track for testing player logic, will be replaced with real data from backend later
 	const testTrack = {
 		id: 1,
