@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
 from services.lifespan import lifespan
@@ -7,9 +8,23 @@ from routers.user import user
 from routers.auth import auth
 
 app=FastAPI(title='sonata-api',
-            description='This document describes the current operations available on the Sonata music streaming web application',
-            lifespan=lifespan,
-            version='v1')
+      description='This document describes the current operations available on the Sonata music streaming web application',
+      lifespan=lifespan,
+      version='v1')
+
+origins = [
+  "http://localhost:5173",
+  "https://emi004.github.io",
+  "https://Emi004.github.io",
+]
+
+app.add_middleware(
+  CORSMiddleware,
+  allow_origins=origins,
+  allow_credentials=True,
+  allow_methods=["*"],
+  allow_headers=["*"],
+)
 
 app.include_router(health,prefix="/health",tags=['health'])
 app.include_router(user,prefix="/users",tags=['users'])

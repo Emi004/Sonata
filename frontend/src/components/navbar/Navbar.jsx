@@ -1,10 +1,12 @@
 import LoginDropdown from './LoginDropdown';
 import SignedOutButtons from './SignedOutButtons';
 import { useAuth } from '../../context/AuthContext';
+import { NavLink } from 'react-router-dom';
+import  sonata_logo from '../../assets/imgs/Sonata.png';
 
 function Navbar() {
 	
-	const {session,user}= useAuth();
+	const {session}= useAuth();
 
 	return (
 		<nav className="navbar pl-5 pr-5 bg-base-100 shadow-accent shadow-sm">
@@ -25,7 +27,17 @@ function Navbar() {
 						></path>{' '}
 					</svg>
 				</button>
-				<a className="btn btn-ghost text-xl">Sonata {user?.username}</a>
+				<NavLink
+					to="/"
+					className="btn btn-ghost gap-1 normal-case px-3 flex items-center"
+				>
+					<img
+						src={sonata_logo}
+						alt="Sonata logo"
+						className="w-9 h-9 rounded-full object-cover shadow-sm"
+					/>
+					<span className="text-2xl font-semibold tracking-tight">Sonata</span>
+				</NavLink>
 			</div>
 			<div className="navbar-center">
 				<input

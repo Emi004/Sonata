@@ -18,6 +18,8 @@ async def get_user_by_id(supabase: SupabaseClient, user_id: str)->User:
         user = await supabase.table('User').select('*').eq('id', user_id).single().execute()
         return User(**user.data)
     except Exception as e:
+        print(user_id)
+
         print(f"DEBUG GET USER ERROR: {type(e).__name__} - {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
