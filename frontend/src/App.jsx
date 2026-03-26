@@ -1,6 +1,6 @@
 import './App.css';
-import Navbar from './components/navbar/Navbar.jsx';
 import MediaPlayer from './components/MediaPlayer.jsx';
+import Navbar from './components/navbar/Navbar.jsx';
 import { useAudio } from './context/AudioContext.jsx';
 //import for mock track, will be removed when real data is integrated from backend
 import violentCrimesArt from './assets/imgs/violent_crimes.webp';
@@ -20,7 +20,7 @@ function App() {
 
 	return (
 		<div className="min-h-screen bg-base-100 flex flex-col">
-			<Navbar />
+  			<Navbar />
 
 			<main className="flex-1 flex flex-col items-center justify-center p-10 text-center">
 				<h1 className="text-3xl font-bold text-white">Welcome to Sonata</h1>
