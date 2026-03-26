@@ -57,18 +57,21 @@ function ProfileHeader({ session, user, loading, updateUser, uploadToStorage }) 
 
   return (
     <div className="flex items-end gap-4">
-      <div className="avatar flex flex-col items-center hover:cursor-pointer shrink-0">
+      <div className="avatar flex flex-col items-center shrink-0">
         <button
           type="button"
-          className="ring-accent ring-offset-base-100 rounded-full ring-2 ring-offset-2 overflow-hidden"
+          className="relative ring-accent ring-offset-base-100 rounded-full ring-2 ring-offset-2 overflow-hidden group"
           onClick={() => {
             fileInputRef.current?.click();
           }}
         >
           <img
             src={loading ? default_pfp : user?.avatarUrl}
-            className="w-20 h-20 rounded-full object-cover"
+            className="w-20 h-20 rounded-full object-cover hover:cursor-pointer group-hover:opacity-60 transition-opacity duration-300"
           />
+          <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs font-medium uppercase tracking-wide text-base-content opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-base-900/30">
+            Change
+          </span>
         </button>
         <input
           ref={fileInputRef}
