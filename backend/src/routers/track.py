@@ -1,0 +1,28 @@
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from models.Track import TrackCreateRequest, TrackResponse
+from services.Track import add_track, get_all_tracks, get_all_tracks_by_name,update_track_service
+from services.dependencies import get_current_user, get_supabase_client
+
+tracks = APIRouter()
+
+@tracks.post("/upload", status_code=201, summary="Upload a new track.", description="Upload a new track to the system", response_description="The created track object", response_model=TrackResponse)
+async def upload_track(track: TrackCreateRequest, current_user=Depends(get_current_user), supabase_client=Depends(get_supabase_client)):
+    if current_user.is_admin or current_user.is_artist:
+        return await add_track(track, supabase_client)
+    else:
+        raise HTTPException(status_code=403, detail="You do not have permission to upload tracks")
+
+@tracks.get("", status_code=200, summary="Get tracks by name query", description="Retrieve all tracks matching the name query", response_description="A list of track objects", response_model=list[TrackResponse])
+async def get_tracks_by_name(name: str = Query(None, description="The name of the track to search for"), supabase_client=Depends(get_supabase_client)):
+    if name:
+        return await get_all_tracks_by_name(name, supabase_client)
+    else:
+        return await get_all_tracks(supabase_client)
+    
+@tracks.patch("/{track_id}", status_code=200, summary="Update a track.", description="Update an existing track in the system", response_description="The updated track object", response_model=TrackResponse)
+async def update_track(track_id: str, track: TrackCreateRequest, current_user=Depends(get_current_user), supabase_client=Depends(get_supabase_client)) -> TrackResponse:
+    if current_user.is_admin or current_user.is_artist:
+        response = await update_track_service(track_id, track, supabase_client)
+        return response
+    else:
+        raise HTTPException(status_code=403, detail="You do not have permission to update tracks")

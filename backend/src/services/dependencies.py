@@ -16,12 +16,19 @@ def get_supabase_admin_client(request: Request) -> SupabaseClient:
     return request.app.state.supabase_admin_client
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme), supabase_admin_client: SupabaseClient = Depends(get_supabase_admin_client),supabase_client: SupabaseClient = Depends(get_supabase_client)) -> User:
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    supabase_admin_client: SupabaseClient = Depends(get_supabase_admin_client),
+    supabase_client: SupabaseClient = Depends(get_supabase_client),
+) -> User:
     user = await supabase_client.auth.get_user(token)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication credentials",
         )
+
+    supabase_client.postgrest.auth(token)
+
     user_id = user.user.id
     return await get_user_by_id(supabase_admin_client, user_id)
