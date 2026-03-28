@@ -39,6 +39,7 @@ function Artist() {
                   Album
                 </button>
               </div>
+              <div className="divider"></div>
             </div>
 
             {mode === "single" ? (
