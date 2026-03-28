@@ -8,6 +8,7 @@ function SongCard({ song }) {
   return (
     <div
       className="card bg-transparent w-50 shadow-md rounded-lg hover:shadow-xl transition-all  cursor-pointer hover:w-51"
+      onClick={() => playTrack(song)}
     >
       <figure className="overflow-hidden rounded-t-md">
         <img
