@@ -23,3 +23,15 @@ async def get_all_tracks_by_name(name: str, supabase_client: SupabaseClient) -> 
         return [TrackResponse(**track) for track in response.data]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve tracks: {str(e)}")
+
+async def update_track_service(track_id: str, track_data: TrackCreateRequest, supabase_client: SupabaseClient) -> TrackResponse:
+    try:
+        payload = track_data.model_dump(mode="json", exclude_none=True)
+        response = await supabase_client.from_('Track').update(payload).eq('id', track_id).execute()
+        if not response.data:
+            raise HTTPException(status_code=404, detail=f"Track with id {track_id} not found")
+        return TrackResponse(**response.data[0])
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update track: {str(e)}")

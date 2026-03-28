@@ -1,22 +1,22 @@
-import { useTracks } from "../../context/TrackContext.jsx";
 import { useEffect } from "react";
+import { useTracks } from "../../context/TrackContext.jsx";
 
-function UnpublishedTracksList() {
-  const { tracks, loadingTracks, tracksError, fetchTracks, publishTrack } =
+function UnpublishedAlbumsList() {
+  const { albums, loadingAlbums, albumsError, fetchAlbumsForArtist, publishAlbum } =
     useTracks();
 
   useEffect(() => {
-    fetchTracks();
-  }, [fetchTracks]);
+    fetchAlbumsForArtist();
+  }, [fetchAlbumsForArtist]);
 
-  const unpublished = Array.isArray(tracks)
-    ? tracks.filter((t) => !t.is_published)
+  const unpublished = Array.isArray(albums)
+    ? albums.filter((a) => !a.is_published)
     : [];
 
-  const handlePublish = async (track) => {
+  const handlePublish = async (album) => {
     try {
-      await publishTrack(track);
-      await fetchTracks();
+      await publishAlbum(album);
+      await fetchAlbumsForArtist();
     } catch (e) {
       console.error(e);
     }
@@ -24,34 +24,33 @@ function UnpublishedTracksList() {
 
   return (
     <div className="w-full bg-base-100 shadow-md rounded-lg p-6">
-      <h2 className="text-xl font-semibold mb-4">Unpublished tracks</h2>
+      <h2 className="text-xl font-semibold mb-4">Unpublished albums</h2>
 
-      {loadingTracks && (
-        <div className="text-sm text-gray-500">Loading tracks...</div>
+      {loadingAlbums && (
+        <div className="text-sm text-gray-500">Loading albums...</div>
       )}
-      {tracksError && (
-        <div className="text-sm text-error mb-2">{tracksError}</div>
+      {albumsError && (
+        <div className="text-sm text-error mb-2">{albumsError}</div>
       )}
 
-      {unpublished.length === 0 && !loadingTracks && !tracksError && (
+      {unpublished.length === 0 && !loadingAlbums && !albumsError && (
         <div className="text-sm text-gray-500">
-          You have no unpublished tracks yet.
+          You have no unpublished albums yet.
         </div>
       )}
 
       <ul className="space-y-2">
-        {unpublished.map((track) => (
+        {unpublished.map((album) => (
           <li
-            key={track.id}
+            key={album.id}
             className="group flex items-center justify-between rounded-md border border-base-300 px-3 py-2 text-sm relative"
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded bg-base-300 overflow-hidden flex items-center justify-center">
-                {track.image_url ? (
-                  // eslint-disable-next-line jsx-a11y/img-redundant-alt
+                {album.image_url ? (
                   <img
-                    src={track.image_url}
-                    alt="Cover"
+                    src={album.image_url}
+                    alt="Album cover"
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -59,7 +58,7 @@ function UnpublishedTracksList() {
                 )}
               </div>
               <div className="flex flex-col">
-                <span className="font-medium line-clamp-1">{track.title}</span>
+                <span className="font-medium line-clamp-1">{album.title}</span>
                 <span className="text-[11px] text-gray-500">Draft</span>
               </div>
             </div>
@@ -68,7 +67,7 @@ function UnpublishedTracksList() {
             </span>
             <button
               type="button"
-              onClick={() => handlePublish(track)}
+              onClick={() => handlePublish(album)}
               className="btn btn-xs btn-success absolute right-3 opacity-0 group-hover:opacity-100 transition-opacity"
             >
               Publish
@@ -80,4 +79,4 @@ function UnpublishedTracksList() {
   );
 }
 
-export default UnpublishedTracksList;
+export default UnpublishedAlbumsList;

@@ -4,13 +4,8 @@ import { useTracks } from "../../context/TrackContext.jsx";
 
 function TrackUploadForm({ onPreviewChange, onUploaded }) {
   const { uploadToStorage } = useAuth();
-  const {
-    albums,
-    loadingAlbums,
-    albumsError,
-    fetchAlbumsForArtist,
-    addTrack,
-  } = useTracks();
+  const { albums, loadingAlbums, albumsError, fetchAlbumsForArtist, addTrack } =
+    useTracks();
 
   const [title, setTitle] = useState("");
   const [albumId, setAlbumId] = useState("");
@@ -25,6 +20,13 @@ function TrackUploadForm({ onPreviewChange, onUploaded }) {
     fetchAlbumsForArtist();
   }, [fetchAlbumsForArtist]);
 
+  // When an album is chosen, clear any manually selected cover image
+  useEffect(() => {
+    if (albumId) {
+      setImageFile(null);
+    }
+  }, [albumId]);
+
   // Update preview whenever local form state changes
   useEffect(() => {
     if (!onPreviewChange) return;
@@ -32,6 +34,11 @@ function TrackUploadForm({ onPreviewChange, onUploaded }) {
     let imagePreviewUrl = null;
     if (imageFile) {
       imagePreviewUrl = URL.createObjectURL(imageFile);
+    } else if (albumId) {
+      const selected = albums.find((a) => a.id === albumId);
+      if (selected?.image_url) {
+        imagePreviewUrl = selected.image_url;
+      }
     }
 
     onPreviewChange({
@@ -46,7 +53,15 @@ function TrackUploadForm({ onPreviewChange, onUploaded }) {
         URL.revokeObjectURL(imagePreviewUrl);
       }
     };
-  }, [title, imageFile, isPublished, audioFile, onPreviewChange]);
+  }, [
+    title,
+    imageFile,
+    albumId,
+    albums,
+    isPublished,
+    audioFile,
+    onPreviewChange,
+  ]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -68,7 +83,10 @@ function TrackUploadForm({ onPreviewChange, onUploaded }) {
       }
 
       let imageUrl = null;
-      if (imageFile) {
+      if (albumId) {
+        const selected = albums.find((a) => a.id === albumId);
+        imageUrl = selected?.image_url || null;
+      } else if (imageFile) {
         imageUrl = await uploadToStorage(imageFile, "tracks/cover");
         if (!imageUrl) {
           setError("Failed to upload image.");
@@ -123,21 +141,76 @@ function TrackUploadForm({ onPreviewChange, onUploaded }) {
         <label className="label">
           <span className="label-text">Album</span>
         </label>
-        <select
-          className="select select-bordered w-full"
-          value={albumId}
-          onChange={(e) => setAlbumId(e.target.value)}
-        >
-          <option value="">No album</option>
-          {albums.map((album) => (
-            <option key={album.id} value={album.id}>
-              {album.title}
-            </option>
-          ))}
-        </select>
-        {loadingAlbums && (
-          <span className="text-xs text-gray-500 mt-1">Loading albums...</span>
-        )}
+        {/* Custom dropdown so we can show album images */}
+        <div className="dropdown w-full">
+          <label
+            tabIndex={0}
+            className="btn btn-outline w-full justify-between"
+          >
+            {(() => {
+              if (!albumId) {
+                return <span className="truncate">No album</span>;
+              }
+              const selected = albums.find((a) => a.id === albumId);
+              if (!selected) {
+                return <span className="truncate">No album</span>;
+              }
+              return (
+                <span className="flex items-center gap-3 w-full truncate">
+                  <span className="w-8 h-8 rounded bg-base-300 overflow-hidden flex items-center justify-center">
+                    {selected.image_url ? (
+                      <img
+                        src={selected.image_url}
+                        alt="Album cover"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-[10px] text-gray-500">
+                        No image
+                      </span>
+                    )}
+                  </span>
+                  <span className="truncate text-left">{selected.title}</span>
+                </span>
+              );
+            })()}
+          </label>
+          <ul
+            tabIndex={0}
+            className="dropdown-content menu bg-base-100 rounded-box shadow w-full mt-1 max-h-64 overflow-y-auto z-10"
+          >
+            <li>
+              <button type="button" onClick={() => setAlbumId("")}>
+                <span className="truncate">No album</span>
+              </button>
+            </li>
+            {albums.map((album) => (
+              <li key={album.id}>
+                <button
+                  type="button"
+                  onClick={() => setAlbumId(album.id)}
+                  className="flex items-center gap-3"
+                >
+                  <span className="w-8 h-8 rounded bg-base-300 overflow-hidden flex items-center justify-center">
+                    {album.image_url ? (
+                      <img
+                        src={album.image_url}
+                        alt="Album cover"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-[10px] text-gray-500">
+                        No image
+                      </span>
+                    )}
+                  </span>
+                  <span className="truncate text-left">{album.title}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+
         {albumsError && (
           <span className="text-xs text-error mt-1">{albumsError}</span>
         )}
@@ -165,7 +238,13 @@ function TrackUploadForm({ onPreviewChange, onUploaded }) {
           accept="image/*"
           className="file-input file-input-bordered w-full"
           onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+          disabled={!!albumId}
         />
+        {albumId && (
+          <span className="mt-1 text-xs text-gray-500">
+            Using the selected album's cover image.
+          </span>
+        )}
       </div>
 
       <div className="form-control flex-row items-center gap-2">
@@ -175,16 +254,16 @@ function TrackUploadForm({ onPreviewChange, onUploaded }) {
           checked={isPublished}
           onChange={(e) => setIsPublished(e.target.checked)}
         />
-        <span className="label-text">Published</span>
+        <span className="label-text ml-2">Published</span>
       </div>
 
       {error && (
-        <div className="alert alert-error mt-2 text-sm">
+        <div role="alert" className="alert alert-error alert-soft">
           <span>{error}</span>
         </div>
       )}
       {success && (
-        <div className="alert alert-success mt-2 text-sm">
+        <div role="alert" className="alert alert-success alert-soft">
           <span>{success}</span>
         </div>
       )}
@@ -192,7 +271,7 @@ function TrackUploadForm({ onPreviewChange, onUploaded }) {
       <div className="form-control mt-4">
         <button
           type="submit"
-          className="btn btn-primary"
+          className="btn btn-outline btn-primary"
           disabled={submitting}
         >
           {submitting ? "Uploading..." : "Upload Track"}
