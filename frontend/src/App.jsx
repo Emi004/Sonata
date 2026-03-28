@@ -1,22 +1,17 @@
 import "./App.css";
+import { useEffect } from "react";
 import MediaPlayer from "./components/MediaPlayer.jsx";
 import Navbar from "./components/navbar/Navbar.jsx";
-import { useAudio } from "./context/AudioContext.jsx";
-//import for mock track, will be removed when real data is integrated from backend
-import violentCrimesArt from "./assets/imgs/violent_crimes.webp";
-import violentCrimesAudio from "./assets/audio/violent_crimes.mp3";
 import Sidebar from "./components/Sidebar.jsx";
+import SongCard from "./components/SongCard.jsx";
+import { useTracks } from "./context/TrackContext.jsx";
 
 function App() {
-  const { playTrack } = useAudio();
+  const { tracks, loadingTracks, tracksError, fetchTracks } = useTracks();
 
-  const testTrack = {
-    id: 1,
-    title: "Violent Crimes",
-    artist: "Kanye West",
-    imageUrl: violentCrimesArt,
-    url: violentCrimesAudio,
-  };
+  useEffect(() => {
+    fetchTracks();
+  }, [fetchTracks]);
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-base-100">
@@ -27,20 +22,42 @@ function App() {
         <Sidebar>
           <div className="h-full flex flex-col justify-between">
             
-            <main className="flex-1 overflow-y-auto p-10 text-center ">
-              <h1 className="text-3xl font-bold text-white">Welcome to Sonata</h1>
-              <p className="mt-4 text-white/70">
-                Click below to test the player logic.
-              </p>
+            <main className="flex-1 overflow-y-auto p-10">
+              <section className="mt-4">
+	     		<div className="divider divider-start text-2xl font-semibold text-white">Songs</div>
 
-              <button
-                className="btn btn-primary mt-6"
-                onClick={() => playTrack(testTrack)}
-              >
-                Play Test Track
-              </button>
-              
-              <div className="h-[200vh]"></div> 
+                {loadingTracks && (
+                  <div className="mt-4 text-sm text-gray-400">Loading songs...</div>
+                )}
+                {tracksError && !loadingTracks && (
+                  <div className="mt-4 text-sm text-error">{tracksError}</div>
+                )}
+
+                {!loadingTracks && !tracksError && tracks.length === 0 && (
+                  <div className="mt-4 text-sm text-gray-400">
+                    No published songs yet.
+                  </div>
+                )}
+
+                {!loadingTracks && !tracksError && tracks.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7  mt-6 justify-items-center align-items-center">
+                    {tracks
+                      .filter((track) => track.is_published)
+                      .map((track) => (
+                        <SongCard
+                          key={track.id}
+                          song={{
+                            id: track.id,
+                            title: track.title,
+                            artist_name: track.artist_name || "Unknown artist",
+                            imageUrl: track.image_url,
+                            url: track.audio_url,
+                          }}
+                        />
+                      ))}
+                  </div>
+                )}
+              </section>
             </main>
 
             <MediaPlayer />
