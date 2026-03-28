@@ -34,11 +34,17 @@ async def update_user_by_id(supabase: SupabaseClient, user_id: str, user_update:
                 .table('User')
                 .update(update_data)
                 .eq('id', user_id)
-                .select('*')
-                .single()
                 .execute()
         )
-        return User(**updated_user.data)
+
+        if not updated_user.data:
+            print(f"DEBUG UPDATE EMPTY DATA for user_id={user_id}, update_data={update_data}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"User with id {user_id} not found or update not allowed",
+            )
+
+        return User(**updated_user.data[0])
     except Exception as e:
         print(f"DEBUG UPDATE ERROR: {type(e).__name__} - {str(e)}")
         raise HTTPException(
