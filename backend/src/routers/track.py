@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from models.Track import TrackCreateRequest, TrackResponse
-from services.Track import add_track, get_all_tracks, get_all_tracks_by_name,update_track_service
+from models.Track import TrackCreateRequest, TrackResponse, DetailedTrackResponse
+from services.Track import add_track, get_all_tracks, get_all_tracks_by_name, update_track_service
 from services.dependencies import get_current_user, get_supabase_client
 
 tracks = APIRouter()
@@ -12,7 +12,7 @@ async def upload_track(track: TrackCreateRequest, current_user=Depends(get_curre
     else:
         raise HTTPException(status_code=403, detail="You do not have permission to upload tracks")
 
-@tracks.get("", status_code=200, summary="Get tracks by name query", description="Retrieve all tracks matching the name query", response_description="A list of track objects", response_model=list[TrackResponse])
+@tracks.get("", status_code=200, summary="Get tracks by name query", description="Retrieve all tracks matching the name query", response_description="A list of track objects", response_model=list[DetailedTrackResponse])
 async def get_tracks_by_name(name: str = Query(None, description="The name of the track to search for"), supabase_client=Depends(get_supabase_client)):
     if name:
         return await get_all_tracks_by_name(name, supabase_client)

@@ -1,7 +1,9 @@
 from supabase import AsyncClient as SupabaseClient
-from models.Track import TrackCreateRequest, TrackResponse
 from fastapi import HTTPException, status, Depends
-from models.Track import TrackCreateRequest, TrackResponse
+
+from models.Track import TrackCreateRequest, TrackResponse, DetailedTrackResponse
+from services.User import get_users
+
 
 async def add_track(track_data: TrackCreateRequest, supabase_client: SupabaseClient) -> TrackResponse:
     try:
@@ -10,17 +12,49 @@ async def add_track(track_data: TrackCreateRequest, supabase_client: SupabaseCli
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to add track: {str(e)}")
 
-async def get_all_tracks(supabase_client: SupabaseClient) -> list[TrackResponse]:
+async def get_all_tracks(supabase_client: SupabaseClient) -> list[DetailedTrackResponse]:
+    """Return all tracks with the artist's username as artist_name."""
     try:
-        response = await supabase_client.from_('Track').select('*').execute()
-        return [TrackResponse(**track) for track in response.data]
+        # Fetch raw tracks
+        response = await supabase_client.from_("Track").select("*").execute()
+
+        # Fetch users once and build a lookup map
+        users = await get_users(supabase_client)
+        user_map = {str(user.id): (user.username or "") for user in users}
+
+        detailed_tracks: list[DetailedTrackResponse] = []
+        for track in response.data:
+            artist_id_str = str(track.get("artist_id")) if track.get("artist_id") is not None else ""
+            artist_name = user_map.get(artist_id_str, "")
+            track_with_artist = {**track, "artist_name": artist_name}
+            detailed_tracks.append(DetailedTrackResponse(**track_with_artist))
+
+        return detailed_tracks
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve tracks: {str(e)}")
 
-async def get_all_tracks_by_name(name: str, supabase_client: SupabaseClient) -> list[TrackResponse]:
+
+async def get_all_tracks_by_name(name: str, supabase_client: SupabaseClient) -> list[DetailedTrackResponse]:
+    """Return tracks whose title matches name and include artist_name."""
     try:
-        response = await supabase_client.from_('Track').select('*').ilike('title', f'%{name}%').execute()
-        return [TrackResponse(**track) for track in response.data]
+        response = (
+            await supabase_client.from_("Track")
+            .select("*")
+            .ilike("title", f"%{name}%")
+            .execute()
+        )
+
+        users = await get_users(supabase_client)
+        user_map = {str(user.id): (user.username or "") for user in users}
+
+        detailed_tracks: list[DetailedTrackResponse] = []
+        for track in response.data:
+            artist_id_str = str(track.get("artist_id")) if track.get("artist_id") is not None else ""
+            artist_name = user_map.get(artist_id_str, "")
+            track_with_artist = {**track, "artist_name": artist_name}
+            detailed_tracks.append(DetailedTrackResponse(**track_with_artist))
+
+        return detailed_tracks
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve tracks: {str(e)}")
 
