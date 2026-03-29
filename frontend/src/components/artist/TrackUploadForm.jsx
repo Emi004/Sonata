@@ -3,7 +3,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTracks } from "../../context/TrackContext.jsx";
 
 function TrackUploadForm({ onPreviewChange, onUploaded }) {
-  const { uploadToStorage } = useAuth();
+  const { uploadToStorage, user } = useAuth();
   const { albums, loadingAlbums, albumsError, fetchAlbumsForArtist, addTrack } =
     useTracks();
 
@@ -12,13 +12,23 @@ function TrackUploadForm({ onPreviewChange, onUploaded }) {
   const [audioFile, setAudioFile] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [isPublished, setIsPublished] = useState(false);
+  const [artistName, setArtistName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    fetchAlbumsForArtist();
-  }, [fetchAlbumsForArtist]);
+    if (!user) return;
+
+    if (user.is_admin) {
+      const trimmed = artistName.trim();
+      if (trimmed) {
+        fetchAlbumsForArtist(trimmed);
+      }
+    } else {
+      fetchAlbumsForArtist();
+    }
+  }, [fetchAlbumsForArtist, user, artistName]);
 
   // When an album is chosen, clear any manually selected cover image
   useEffect(() => {
@@ -46,6 +56,10 @@ function TrackUploadForm({ onPreviewChange, onUploaded }) {
       imagePreviewUrl,
       isPublished,
       hasAudio: !!audioFile,
+      artist_name:
+        user?.is_admin
+          ? artistName.trim() || "Unknown artist"
+          : user?.username || "Unknown artist",
     });
 
     return () => {
@@ -60,6 +74,8 @@ function TrackUploadForm({ onPreviewChange, onUploaded }) {
     albums,
     isPublished,
     audioFile,
+    artistName,
+    user,
     onPreviewChange,
   ]);
 
@@ -70,6 +86,11 @@ function TrackUploadForm({ onPreviewChange, onUploaded }) {
 
     if (!audioFile) {
       setError("Please select an audio file.");
+      return;
+    }
+
+    if (user?.is_admin && !artistName.trim()) {
+      setError("Artist name is required for admins.");
       return;
     }
 
@@ -101,6 +122,8 @@ function TrackUploadForm({ onPreviewChange, onUploaded }) {
         audio_url: audioUrl,
         image_url: imageUrl,
         is_published: isPublished,
+        artist_name: user?.is_admin ? artistName.trim() : undefined,
+        created_by: user?.id,
       });
 
       setSuccess("Track uploaded successfully.");
@@ -109,6 +132,7 @@ function TrackUploadForm({ onPreviewChange, onUploaded }) {
       setAudioFile(null);
       setImageFile(null);
       setIsPublished(false);
+      setArtistName("");
       if (onUploaded) {
         onUploaded();
       }
@@ -136,6 +160,33 @@ function TrackUploadForm({ onPreviewChange, onUploaded }) {
           required
         />
       </div>
+
+      {user?.is_admin ? (
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Artist name</span>
+          </label>
+          <input
+            type="text"
+            className="input input-bordered w-full"
+            value={artistName}
+            onChange={(e) => setArtistName(e.target.value)}
+            required
+          />
+        </div>
+      ) : (
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Artist</span>
+          </label>
+          <input
+            type="text"
+            className="input input-bordered w-full"
+            value={user?.username || ""}
+            readOnly
+          />
+        </div>
+      )}
 
       <div className="form-control">
         <label className="label">

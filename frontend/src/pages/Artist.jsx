@@ -13,6 +13,7 @@ function Artist() {
     title: "Untitled track",
     imagePreviewUrl: null,
     hasAudio: false,
+    artist_name: "Unknown artist",
   });
 
   return (

@@ -4,8 +4,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 
 
 function TrackPreviewCard({ preview }) {
-  const { title, imagePreviewUrl, hasAudio } = preview || {};
-  const {user}=useAuth()
+  const { title, artist_name, imagePreviewUrl, hasAudio } = preview || {};
 
   return (
     <div className="w-full bg-base-100 shadow-md rounded-lg p-6 flex flex-col gap-4">
@@ -21,7 +20,7 @@ function TrackPreviewCard({ preview }) {
         <div className="flex flex-col gap-1">
           <span className="font-medium">{title || "Untitled track"}</span>
           <span className="text-xs text-gray-300">
-            {user?.username || "Unknown artist"}
+            {artist_name || "Unknown artist"}
           </span>
           <span className="text-xs text-gray-500 mt-1">
             {hasAudio ? "Audio file selected" : ""}

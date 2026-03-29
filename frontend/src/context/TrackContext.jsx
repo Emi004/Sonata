@@ -41,9 +41,9 @@ export const TrackProvider = ({ children }) => {
   }, []);
 
   const fetchAlbumsForArtist = useCallback(
-    async (artistId) => {
-      const effectiveArtistId = artistId || user?.id;
-      if (!effectiveArtistId) return;
+    async (artistName) => {
+      const effectiveArtistName = artistName || user?.username;
+      if (!effectiveArtistName) return;
       setLoadingAlbums(true);
       setAlbumsError("");
       try {
@@ -66,7 +66,7 @@ export const TrackProvider = ({ children }) => {
         const data = await res.json();
         const all = Array.isArray(data) ? data : [];
         const filtered = all.filter(
-          (album) => String(album.artist_id) === String(effectiveArtistId),
+          (album) => String(album.artist_name) === String(effectiveArtistName),
         );
         setAlbums(filtered);
       } catch (_err) {
@@ -76,13 +76,13 @@ export const TrackProvider = ({ children }) => {
         setLoadingAlbums(false);
       }
     },
-    [session?.access_token, user?.id],
+    [session?.access_token, user?.username],
   );
 
   const updateTrack = useCallback(
     async (
       trackId,
-      { title, artist_id, album_id, audio_url, image_url, is_published },
+      { title, created_by,album_id, audio_url, image_url, is_published, artist_name },
     ) => {
       if (!user || !session?.access_token) {
         throw new Error("Not authenticated");
@@ -90,11 +90,12 @@ export const TrackProvider = ({ children }) => {
 
       const payload = {
         title,
-        artist_id: artist_id || user.id,
+        created_by: created_by || user.id,
         album_id: album_id || null,
         audio_url,
         image_url,
         is_published,
+        artist_name,
       };
 
       const res = await fetch(
@@ -126,16 +127,17 @@ export const TrackProvider = ({ children }) => {
   );
   
     const updateAlbum = useCallback(
-      async (albumId, { title, artist_id, image_url, is_published }) => {
+      async (albumId, { title, image_url, is_published, artist_name, created_by }) => {
         if (!user || !session?.access_token) {
           throw new Error("Not authenticated");
         }
             
         const payload = {
           title,
-          artist_id: artist_id || user.id,
+          created_by: created_by || user.id,
           image_url: image_url || null,
           is_published,
+          artist_name,
         };
             
             const res = await fetch(
@@ -167,7 +169,7 @@ export const TrackProvider = ({ children }) => {
   );
 
   const addTrack = useCallback(
-    async ({ title, album_id, audio_url, image_url, is_published }) => {
+    async ({ title, album_id, audio_url, image_url, is_published, artist_name, created_by  }) => {
       if (!user || !session?.access_token) {
         throw new Error("Not authenticated");
       }
@@ -175,11 +177,12 @@ export const TrackProvider = ({ children }) => {
       
       const payload = {
         title,
-        artist_id: user.id,
+        created_by: created_by || user.id,
         album_id: album_id || null,
         audio_url,
         image_url,
         is_published,
+        artist_name,
       };
 
       const res = await fetch(
@@ -211,11 +214,12 @@ export const TrackProvider = ({ children }) => {
     async (track) => {
       return updateTrack(track.id, {
         title: track.title,
-        artist_id: track.artist_id,
         album_id: track.album_id ?? null,
         audio_url: track.audio_url,
         image_url: track.image_url ?? null,
         is_published: true,
+        artist_name: track.artist_name,
+        created_by: track.created_by,
       });
     },
     [updateTrack],
@@ -225,25 +229,27 @@ export const TrackProvider = ({ children }) => {
     async (album) => {
       return updateAlbum(album.id, {
         title: album.title,
-        artist_id: album.artist_id,
         image_url: album.image_url ?? null,
         is_published: true,
+        artist_name: album.artist_name,
+        created_by: album.created_by,
       });
     },
     [updateAlbum],
   );
 
   const createAlbum = useCallback(
-    async ({ title, image_url, is_published }) => {
+    async ({ title, image_url, is_published, artist_name, created_by }) => {
       if (!user || !session?.access_token) {
         throw new Error("Not authenticated");
       }
 
       const payload = {
         title,
-        artist_id: user.id,
         image_url: image_url || null,
         is_published,
+        artist_name,
+        created_by: created_by || user.id,
       };
 
       const res = await fetch(

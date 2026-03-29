@@ -10,7 +10,7 @@ function SongCard({ song }) {
       className="card bg-transparent w-50 shadow-md rounded-lg hover:shadow-xl transition-all  cursor-pointer hover:w-51"
       onClick={() => playTrack(song)}
     >
-      <figure className="overflow-hidden rounded-t-md">
+      <figure className="overflow-hidden rounded-t-md aspect-square w-full">
         <img
           className="w-full h-full object-cover rounded-2xl"
           src={song.imageUrl}
