@@ -4,11 +4,12 @@ import { useAuth } from "../../context/AuthContext";
 
 function AlbumCreateForm({ onPreviewChange }) {
   const { createAlbum } = useTracks();
-  const { uploadToStorage } = useAuth();
+  const { uploadToStorage, user } = useAuth();
 
   const [title, setTitle] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [isPublished, setIsPublished] = useState(false);
+  const [artistName, setArtistName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -26,6 +27,10 @@ function AlbumCreateForm({ onPreviewChange }) {
       imagePreviewUrl,
       isPublished,
       hasAudio: false,
+      artist_name:
+        user?.is_admin
+          ? artistName.trim() || "Unknown artist"
+          : user?.username || "Unknown artist",
     });
 
     return () => {
@@ -33,7 +38,7 @@ function AlbumCreateForm({ onPreviewChange }) {
         URL.revokeObjectURL(imagePreviewUrl);
       }
     };
-  }, [title, imageFile, isPublished, onPreviewChange]);
+  }, [title, imageFile, isPublished, artistName, user, onPreviewChange]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,6 +47,11 @@ function AlbumCreateForm({ onPreviewChange }) {
 
     if (!title.trim()) {
       setError("Title is required.");
+      return;
+    }
+
+    if (user?.is_admin && !artistName.trim()) {
+      setError("Artist name is required for admins.");
       return;
     }
 
@@ -61,12 +71,15 @@ function AlbumCreateForm({ onPreviewChange }) {
         title: title.trim(),
         image_url: uploadedImageUrl,
         is_published: isPublished,
+        // For admins, use the typed name; for artists, backend will use username
+        artist_name: user?.is_admin ? artistName.trim() : undefined,
       });
 
       setSuccess("Album created successfully.");
       setTitle("");
       setImageFile(null);
       setIsPublished(false);
+      setArtistName("");
     } catch (err) {
       setError(err.message || "Unexpected error while creating album.");
     } finally {
@@ -91,6 +104,33 @@ function AlbumCreateForm({ onPreviewChange }) {
           required
         />
       </div>
+
+      {user?.is_admin ? (
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Artist name</span>
+          </label>
+          <input
+            type="text"
+            className="input input-bordered w-full"
+            value={artistName}
+            onChange={(e) => setArtistName(e.target.value)}
+            required
+          />
+        </div>
+      ) : (
+        <div className="form-control">
+          <label className="label">
+            <span className="label-text">Artist</span>
+          </label>
+          <input
+            type="text"
+            className="input input-bordered w-full"
+            value={user?.username || ""}
+            readOnly
+          />
+        </div>
+      )}
 
       <div className="form-control">
         <label className="label">
