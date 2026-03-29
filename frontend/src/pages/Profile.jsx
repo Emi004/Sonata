@@ -11,7 +11,7 @@ function Profile() {
     <>
 
      
-     <Navbar />
+     <Navbar  />
      <Sidebar>
       <main className="bg-base-100 min-h-[calc(100vh-4rem)]">
         <div className="max-w-7xl mx-auto px-8 py-10 space-y-10">

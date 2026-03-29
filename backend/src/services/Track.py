@@ -1,3 +1,5 @@
+import random
+
 from supabase import AsyncClient as SupabaseClient
 from fastapi import HTTPException
 
@@ -17,7 +19,9 @@ async def get_all_tracks(supabase_client: SupabaseClient) -> list[TrackResponse]
 
     try:
         response = await supabase_client.from_("Track").select("*").execute()
-        return [TrackResponse(**track) for track in response.data]
+        shuffled_tracks = list(response.data)
+        random.shuffle(shuffled_tracks)
+        return [TrackResponse(**track) for track in shuffled_tracks]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to retrieve tracks: {str(e)}")
 
@@ -29,6 +33,20 @@ async def get_all_tracks_by_name(name: str, supabase_client: SupabaseClient) -> 
             await supabase_client.from_("Track")
             .select("*")
             .ilike("title", f"%{name}%")
+            .execute()
+        )
+        return [TrackResponse(**track) for track in response.data]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve tracks: {str(e)}")
+
+
+async def get_all_tracks_by_artist_name(artist_name: str, supabase_client: SupabaseClient) -> list[TrackResponse]:
+
+    try:
+        response = (
+            await supabase_client.from_("Track")
+            .select("*")
+            .ilike("artist_name", f"%{artist_name}%")
             .execute()
         )
         return [TrackResponse(**track) for track in response.data]

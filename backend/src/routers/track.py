@@ -1,7 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from models.Track import TrackCreateRequest, TrackResponse
-from services.Track import add_track, get_all_tracks, get_all_tracks_by_name, update_track_service
+from services.Track import (
+    add_track,
+    get_all_tracks,
+    get_all_tracks_by_artist_name,
+    get_all_tracks_by_name,
+    update_track_service,
+)
 from services.dependencies import get_current_user, get_supabase_client
 
 tracks = APIRouter()
@@ -60,6 +66,21 @@ async def get_tracks_by_name(
     if name:
         return await get_all_tracks_by_name(name, supabase_client)
     return await get_all_tracks(supabase_client)
+
+
+@tracks.get(
+    "/by-artist",
+    status_code=200,
+    summary="Get tracks by artist name query",
+    description="Retrieve all tracks matching the artist name query",
+    response_description="A list of track objects",
+    response_model=list[TrackResponse],
+)
+async def get_tracks_by_artist_name(
+    artist_name: str = Query(..., description="The artist name to search for"),
+    supabase_client=Depends(get_supabase_client),
+):
+    return await get_all_tracks_by_artist_name(artist_name, supabase_client)
 
 
 @tracks.patch(

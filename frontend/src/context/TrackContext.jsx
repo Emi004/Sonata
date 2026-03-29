@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useAuth } from "./AuthContext.jsx";
 
 const TrackContext = createContext();
@@ -12,24 +12,49 @@ export const TrackProvider = ({ children }) => {
   const [loadingAlbums, setLoadingAlbums] = useState(false);
   const [tracksError, setTracksError] = useState("");
   const [albumsError, setAlbumsError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchTracks = useCallback(async (name) => {
     setLoadingTracks(true);
     setTracksError("");
     try {
-      const url = name
-        ? `${import.meta.env.VITE_BACKEND_URL}/tracks?name=${encodeURIComponent(
-            name,
-          )}`
-        : `${import.meta.env.VITE_BACKEND_URL}/tracks`;
+      if (name) {
+        const encodedName = encodeURIComponent(name);
+        const [titleRes, artistRes] = await Promise.all([
+          fetch(`${import.meta.env.VITE_BACKEND_URL}/tracks?name=${encodedName}`),
+          fetch(
+            `${import.meta.env.VITE_BACKEND_URL}/tracks/by-artist?artist_name=${encodedName}`,
+          ),
+        ]);
 
-      const res = await fetch(url);
+        if (!titleRes.ok || !artistRes.ok) {
+          const text = !titleRes.ok ? await titleRes.text() : await artistRes.text();
+          setTracksError(text || "Failed to fetch tracks");
+          setTracks([]);
+          return;
+        }
+
+        const [titleData, artistData] = await Promise.all([
+          titleRes.json(),
+          artistRes.json(),
+        ]);
+
+        const mergedTracks = [...(Array.isArray(titleData) ? titleData : []), ...(Array.isArray(artistData) ? artistData : [])];
+        const dedupedTracks = Array.from(
+          new Map(mergedTracks.map((track) => [track.id, track])).values(),
+        );
+        setTracks(dedupedTracks);
+        return;
+      }
+
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/tracks`);
       if (!res.ok) {
         const text = await res.text();
         setTracksError(text || "Failed to fetch tracks");
         setTracks([]);
         return;
       }
+
       const data = await res.json();
       setTracks(Array.isArray(data) ? data : []);
     } catch (_err) {
@@ -39,6 +64,27 @@ export const TrackProvider = ({ children }) => {
       setLoadingTracks(false);
     }
   }, []);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      const trimmedQuery = searchQuery.trim();
+      fetchTracks(trimmedQuery || undefined);
+    }, 300);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchTracks, searchQuery]);
+
+  const searchSuggestions = searchQuery.trim()
+    ? tracks
+        .filter((track) => track.is_published)
+        .slice(0, 2)
+        .map((track) => ({
+          id: track.id,
+          title: track.title,
+          artist_name: track.artist_name || "Unknown artist",
+          image_url: track.image_url || null,
+        }))
+    : [];
 
   const fetchAlbumsForArtist = useCallback(
     async (artistName) => {
@@ -285,6 +331,9 @@ export const TrackProvider = ({ children }) => {
         loadingAlbums,
         tracksError,
         albumsError,
+        searchQuery,
+        setSearchQuery,
+        searchSuggestions,
         fetchTracks,
         fetchAlbumsForArtist,
         addTrack,
