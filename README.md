@@ -1,87 +1,197 @@
-# 🎵 Sonata | Music Streaming & Artist Platform
+# 🎵 Sonata
 
-**Sonata** is a high-performance music streaming ecosystem designed for seamless audio delivery and artist empowerment. Developed as a full-stack educational project, it demonstrates proficiency in **asynchronous backend architecture**, **event-driven database design**, and **global state management**.
+> A full-stack music streaming and artist platform — built with **React 19**, **FastAPI**, and **Supabase**.
 
----
-
-## 🛠️ Tech Stack & System Requirements
-
-### **Frontend (The User Interface)**
-* **Framework:** **React 18** (Vite) for optimized performance and rapid development.
-* **Styling:** **Tailwind CSS + daisyUI** ("Midnight Electric" theme) for a responsive, modern aesthetic.
-* **State Management:** **React Context API**, creating a global provider for the persistent Audio Engine.
-* **Client Communication:** **Supabase JS SDK** for real-time authentication and database interaction.
-
-### **Backend (The Logic Layer)**
-* **Framework:** **FastAPI (Python 3.13+)**, utilizing asynchronous programming for high-concurrency performance.
-* **Security:** **JWT (JSON Web Tokens)** verification using `python-jose` to protect sensitive routes.
-* **Validation:** **Pydantic v2** for strict data schema enforcement and serialization.
-* **Server:** **Uvicorn** ASGI server for local development and production-ready hosting.
-
-### **Database & Infrastructure (The Data Layer)**
-* **Database:** **PostgreSQL** (via **Supabase**) for robust relational data management.
-* **Automation:** **PL/pgSQL Triggers** to automatically synchronize Auth identities with Public User profiles.
-* **Media Storage:** **Supabase Storage (S3)** for high-fidelity audio binaries and image assets.
+**Live demo:** [emi004.github.io/Sonata](https://emi004.github.io/Sonata)
 
 ---
 
-## 🚀 Key Dynamic Features
+## ✨ Features
 
-### 1. Interactive Media Engine
-A persistent, global music player that remains active during site-wide navigation.
-* **Live Controls:** Play/Pause, Skip, and a reactive Seek Bar utilizing the HTML5 Audio API.
-* **Audio Intelligence:** Real-time volume management and state-aware "Mute" toggles.
-* **Favorites Sync:** A "Heart" button that performs real-time RESTful updates to the backend library.
+- 🎧 **Persistent Media Player** — Global audio engine with play/pause, seek, volume, and mute controls using the HTML5 Audio API
+- 🔍 **Instant Search** — Debounced, real-time track and artist search with trending pre-fetch suggestions
+- 📂 **Playlist Manager** — Full CRUD playlists with drag-and-drop reordering synced to the backend
+- 🏠 **Personalized Home Feed** — Genre-based recommendation engine driven by listening history
+- 🎤 **Artist Portal** — Multipart file upload pipeline for tracks and albums, with full metadata management
+- 🔐 **Auth & Role System** — Supabase Auth with JWT verification protecting role-scoped routes (Listener / Artist / Admin)
 
-### 2. Intelligent Search & Recommendations
-A high-speed discovery interface optimized for low latency.
-* **Instant Results:** Debounced search queries that fetch songs and artists as the user types.
-* **Contextual Suggestions:** Pre-fetch logic that displays trending tracks or recent history before the user submits a search.
+---
 
-### 3. Smart Playlist Manager (Drag & Drop)
-A desktop-class experience for organizing music using a **Many-to-Many** relational structure.
-* **Custom Curation:** Full CRUD functionality for creating and managing personal playlists.
-* **Reorder Logic:** Integrated Drag & Drop functionality that updates the local UI state instantly.
-* **Persistent Ordering:** Frontend syncs new index sequences to the Python backend to preserve custom track orders in PostgreSQL.
+## 🛠️ Tech Stack
 
-### 4. Personalized Discovery Home
-A data-driven landing page that personalizes the experience for every user.
-* **Genre Explorer:** A dynamic grid mapped from database genre array types (`text[]`).
-* **Recommendation Engine:** Filtering logic that suggests tracks based on the user's most frequently played genres.
+### Frontend
+| Layer | Technology |
+| :--- | :--- |
+| Framework | React 19 (Vite 7) |
+| Styling | Tailwind CSS v4 + daisyUI v5 |
+| Routing | React Router DOM v7 |
+| State | React Context API (`AudioContext`, `AuthContext`, `TrackContext`) |
+| Auth / DB | Supabase JS SDK v2 |
+| Deploy | GitHub Pages (`gh-pages`) |
 
-### 5. Artist Portal & Music Distribution
-Empowering creators to share their work through professional tools.
-* **Artist Onboarding:** An application flow that updates user metadata to grant "Artist Status."
-* **Media Pipeline:** A robust dashboard handling **Multipart/Form-Data** for secure file transfers to cloud storage.
-* **Content Management:** Full metadata control for artists to manage titles, genres, and track availability.
+### Backend
+| Layer | Technology |
+| :--- | :--- |
+| Framework | FastAPI 0.120 |
+| Runtime | Python 3.12 / Uvicorn |
+| Auth | Supabase Auth + JWT via `dependencies.py` |
+| Validation | Pydantic v2 models |
+| Storage | Supabase Storage (S3) for audio & images |
+| Container | Docker (exposes port `8080`) |
+
+### Database
+- **PostgreSQL** via Supabase — relational schema for users, tracks, albums, and playlists
+- **PL/pgSQL Triggers** — auto-sync Auth identities → public user profiles
+- **`text[]` genre columns** — powering the genre explorer grid
+
+---
+
+## 📂 Project Structure
+
+```text
+Sonata/
+├── backend/
+│   ├── Dockerfile
+│   ├── scripts/
+│   └── src/
+│       ├── main.py                  # FastAPI app entry point, CORS, router registration
+│       ├── requirements.txt
+│       ├── clients/                 # Supabase client & lifecycle management
+│       ├── models/                  # Pydantic schemas
+│       │   ├── Album.py
+│       │   ├── Login.py
+│       │   ├── Playlist.py
+│       │   ├── Track.py
+│       │   └── User.py
+│       ├── routers/                 # API route handlers
+│       │   ├── album.py             # GET /albums
+│       │   ├── auth.py              # POST /auth (internal)
+│       │   ├── health.py            # GET /health
+│       │   ├── track.py             # GET/POST /tracks
+│       │   └── user.py              # GET/PATCH /users
+│       ├── schemas/                 # DB-level schema helpers
+│       ├── services/                # Business logic
+│       │   ├── Album.py
+│       │   ├── Login.py
+│       │   ├── Track.py
+│       │   ├── User.py
+│       │   ├── dependencies.py      # JWT auth dependency injection
+│       │   └── lifespan.py          # App startup/shutdown hooks
+│       └── test/
+│
+└── frontend/
+    ├── index.html
+    ├── vite.config.js
+    ├── package.json
+    └── src/
+        ├── App.jsx                  # Root layout & page composition
+        ├── routers.jsx              # Client-side route definitions
+        ├── main.jsx                 # React DOM entry point
+        ├── clients/                 # Supabase JS client singleton
+        ├── context/
+        │   ├── AudioContext.jsx     # Global audio engine state
+        │   ├── AuthContext.jsx      # Auth session & user role state
+        │   └── TrackContext.jsx     # Track list, search, playback queue
+        ├── components/
+        │   ├── MediaPlayer.jsx      # Persistent bottom player bar
+        │   ├── Sidebar.jsx          # Navigation + playlist panel
+        │   ├── SongCard.jsx         # Reusable track tile
+        │   ├── artist/
+        │   │   ├── AlbumCreateForm.jsx
+        │   │   ├── TrackUploadForm.jsx       # Multipart audio upload
+        │   │   ├── TrackPreviewCard.jsx
+        │   │   ├── UnpublishedAlbumsList.jsx
+        │   │   └── UnpublishedTracksList.jsx
+        │   ├── modals/              # Dialog overlays
+        │   ├── navbar/              # Top navigation bar
+        │   └── profile/             # Profile display components
+        └── pages/
+            ├── Artist.jsx           # Artist dashboard & content management
+            └── Profile.jsx          # Listener profile & history
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js ≥ 18 and npm
+- Python 3.12+
+- A [Supabase](https://supabase.com) project (PostgreSQL + Auth + Storage)
+
+### Backend
+
+```bash
+cd backend
+
+# Create and activate a virtual environment
+python -m venv .venv && source .venv/bin/activate
+
+# Install dependencies
+pip install -r src/requirements.txt
+
+# Set environment variables
+cp .env.example .env  # Fill in SUPABASE_URL, SUPABASE_SERVICE_KEY, etc.
+
+# Run the dev server
+uvicorn src.main:app --reload --port 8080
+```
+
+Or with Docker:
+
+```bash
+cd backend
+docker build -t sonata-api .
+docker run -p 8080:8080 --env-file .env sonata-api
+```
+
+API docs available at `http://localhost:8080/docs`.
+
+### Frontend
+
+```bash
+cd frontend
+
+npm install
+
+# Set environment variables
+cp .env.example .env  # Fill in VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_API_URL
+
+npm run dev
+```
+
+App runs at `http://localhost:5173`.
 
 ---
 
 ## 👥 User Roles
 
-| Role | Permissions |
+| Role | Capabilities |
 | :--- | :--- |
-| **Listener** | Stream audio, create/reorder playlists, and favorite tracks. |
-| **Artist** | Upload media, manage albums/track metadata, and edit artist profile. |
-| **Admin** | Manage user status, moderate content, and oversee platform health. |
+| **Listener** | Stream audio, manage playlists, favorite tracks |
+| **Artist** | Upload & manage tracks/albums, edit artist profile |
+| **Admin** | Moderate content, manage user status, platform health |
 
 ---
 
-## 📂 Project Structure Overview
+## 🔌 API Endpoints
 
-```text
-Sonata/
-├── backend/                # FastAPI Logic
-│   ├── src/
-│   │   ├── clients/        # Supabase Client & Lifecycle
-│   │   ├── models/         # Pydantic Schemas (Read/Create)
-│   │   ├── routers/        # API Endpoints (Auth, Music, Playlists)
-│   │   ├── services/       # JWT Logic & Database Triggers
-│   │   └── main.py         # Entry Point & Lifespan
-├── frontend/               # React UI
-│   ├── src/
-│   │   ├── components/     # Media Player, Search, Playlists
-│   │   ├── context/        # Global Audio State Management
-│   │   ├── hooks/          # Custom Supabase & Fetch Hooks
-│   │   └── App.jsx         # Routing & Page Layouts
-└── README.md               # Documentation
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| `GET` | `/health` | Service health check |
+| `GET` | `/users/{id}` | Get user profile |
+| `PATCH` | `/users/{id}` | Update user metadata / grant artist status |
+| `GET` | `/tracks` | List/search tracks |
+| `POST` | `/tracks` | Upload a new track (Artist only) |
+| `GET` | `/albums` | List albums |
+| `POST` | `/albums` | Create a new album (Artist only) |
+
+Full interactive docs: `<backend-url>/docs`
+
+---
+
+## 🌐 Deployment
+
+- **Frontend** is deployed to **GitHub Pages** via `npm run deploy` (`gh-pages` package).
+- **Backend** is containerized with Docker and can be deployed to any container hosting platform (Railway, Fly.io, Render, etc.).
+- CORS is pre-configured for `https://emi004.github.io`.
